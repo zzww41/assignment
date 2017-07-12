@@ -1,0 +1,189 @@
+/**Author: Wei Zhou***/
+/**Date: 4/26/2017****/
+
+#include <math.h>
+#include <algorithm>
+#include <string>
+#include <iostream>
+#include <vector>
+using namespace std;
+using std::string;
+using std::cout;
+using std::vector;
+using std::reverse;
+
+vector<int> A;
+vector<int> B;
+vector<int> C;
+vector<int> disks;
+bool isEmpty[] = { false,true,true };
+
+void init(int numOfDisk)
+{
+	A.push_back(1);
+	disks.push_back(1);
+	for (int i = 1; i < numOfDisk; i++)
+	{
+		A.push_back(A[i - 1] * 10 + 1);
+		//A[i] = A[i - 1] * 10 + 1;
+		disks.push_back(A[i - 1] * 10 + 1);
+	}
+	//C.insert(C.begin(), 3);
+	reverse(A.begin(), A.end());
+}
+
+void print(vector<int> &v11)
+{
+	/*for (vector<int>::iterator it = v.begin(); it < v.end(); ++it)
+	{
+		cout << *it << " ";
+	}*/
+	for (int i = 0; i < v11.size(); i++)
+	{
+		cout << v11[i] << " ";
+	}
+	cout << "\n";
+	
+}
+
+vector<int> convert(int numOfDisk, int step, int &Source, int &Dest, int &zerosBetweenOnes)
+{
+	int n;
+	int count_1 = 0;
+	zerosBetweenOnes = 0;
+	Source = -1;
+	Dest = -1;
+
+	vector<int> v;
+	for (int i = 0; i < numOfDisk; i++)
+	{
+		if ((step >> i) & 1) // if some bit is 1
+		{
+			count_1++;
+			//v[i] = 1;
+			//v.push_back(1);
+			v.insert(v.begin(), 1);
+			if (count_1 == 1)
+				Source = disks[i];
+			else if (count_1 == 2)
+				Dest = disks[i];
+		}
+		else
+		{
+			if (count_1 == 1)
+			{
+				zerosBetweenOnes++;
+			}
+			//v[i] = 0;
+			//v.push_back(0);
+			v.insert(v.begin(), 0);
+		}
+	}
+	//if count_1 = 1, means only one bit is 1, so zerosBetweenOne is invalid.
+	if (count_1 == 1)
+	{
+		zerosBetweenOnes = 0;
+	}
+	if (count_1 >= 2 && zerosBetweenOnes == 0)
+		zerosBetweenOnes = -1;
+	return v;
+}
+
+vector<int>* findNonDestDisk(int source, int dest)
+{
+	if (A.size() == 0 || (A[A.size() - 1] != source && (vector<int>::iterator)find(A.begin(), A.end(),dest) == A.end()))
+		return &A;
+	else if (B.size() == 0 || (B[B.size() - 1] != source  && (vector<int>::iterator)find(B.begin(), B.end(), dest) == B.end()))
+		return &B;
+	else if (C.size() == 0 || (C[C.size() - 1] != source  && (vector<int>::iterator)find(C.begin(), C.end(), dest) == C.end()))
+		return &C;
+}
+vector<int>* findDisk(int source)
+{
+	//cout << A.end();
+	//cout << A[A.size() -1];
+	if (A.size() > 0 && A[A.size() - 1] == source)
+		return &A;
+	else if (B.size() > 0 && B[B.size() - 1] == source)
+		return &B;
+	else if (C.size() > 0 && C[C.size() - 1] == source)
+		return &C;
+}
+
+vector<int>* findEmptyDisk()
+{
+	if (A.size() == 0)
+		return &A;
+	else if (B.size() == 0)
+		return &B;
+	else if (C.size() == 0)
+		return &C;
+}
+
+void hanoi(int numOfDisk, vector<int> &AA, vector<int> &BB, vector<int> &CC)
+{
+	
+	int numOfStep = pow(2, numOfDisk);
+	int Source = 0;
+	int Dest = 0;
+	int zerosBtwOnes = 0;
+	vector<int> v;
+	for (int i = 1; i < numOfStep; i++)
+	{
+		v = convert(numOfDisk, i, Source, Dest, zerosBtwOnes);
+		if (zerosBtwOnes == 0)
+		{
+			//move source in any empty stack
+			vector<int> *sourceV = findDisk(Source);
+			vector<int> *destV = findEmptyDisk();
+			int a = (*sourceV)[sourceV->size() - 1];
+			destV->push_back(a);
+			sourceV->pop_back();
+
+		}
+		else if (zerosBtwOnes == -1)
+		{
+			//move source in any empty stack
+			vector<int> *sourceV = findDisk(Source);
+			vector<int> *destV = findDisk(Dest);
+			int a = (*sourceV)[sourceV->size() - 1];
+			destV->push_back(a);
+			sourceV->pop_back();
+
+		}
+		else if (zerosBtwOnes > 0 && zerosBtwOnes % 2 == 0)
+		{
+			// put Source on the top of Dest
+			vector<int> *sourceV = findDisk(Source);
+			vector<int> *destV = findDisk(Dest);
+			int a = (*sourceV)[sourceV->size() - 1];
+			destV->push_back(a);
+			sourceV->pop_back();
+
+		}
+		else if (zerosBtwOnes > 0 && zerosBtwOnes % 2 != 0)
+		{
+			// put source on top of the stack not containing the dest.
+			vector<int>* sourceV = findDisk(Source);
+			vector<int>* destV = findNonDestDisk(Source,Dest);
+			int a = (*sourceV)[sourceV->size() - 1];
+			destV->push_back(a);
+			sourceV->pop_back();
+		}
+		cout << "A:  ";
+		print(AA);
+		cout << "B:  ";
+		print(BB);
+		cout << "C:  ";
+		print(CC);
+		cout << "\n";
+	}
+
+}
+
+int main()
+{
+	init(5);
+	hanoi(5, A, B, C);
+	system("pause");
+}
